@@ -13,7 +13,7 @@ This project was developed as part of an engineering thesis.
 
 ## Screenshots
 
-> Add your screenshots to the `/screenshots` directory and update paths if needed.
+
 
 ![Dashboard](./screenshots/dashboard.png)
 ![Employees](./screenshots/employees.png)
