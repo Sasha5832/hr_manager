@@ -43,7 +43,6 @@ This project was developed as part of an engineering thesis.
 ### Attendance Tracking
 
 * Daily attendance records
-* Work time tracking (in minutes)
 * Optional notes for each entry
 
 ### CSV Import
@@ -150,7 +149,7 @@ npm run dev
 
 ## Usage
 
-1. Open [http://localhost:5173](http://localhost:5173)
+1. Open [http://localhost:8000](http://localhost:8000) or  [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 2. Log in using your account
 3. Navigate through the modules:
 
@@ -214,6 +213,8 @@ hr_manager/
 │   ├── models.py
 │   ├── serializers.py
 │   ├── views.py
+│   ├── admin.py
+│   ├── urls.py
 │
 ├── hr_manager/
 │   ├── settings.py
@@ -268,6 +269,12 @@ hr_manager/
 * Multi-step approval workflow
 * Integration with external HR systems
 * Docker support
+
+---
+
+## Full Documentation / Thesis
+For a deep dive into the system architecture, database design, and business logic, 
+you can read my full engineering thesis (in Polish): [HR_Manager_Thesis.pdf](./thesis/HR_Manager_Thesis.pdf)
 
 ---
 
