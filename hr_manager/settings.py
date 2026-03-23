@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import dj_database_url  # Импорт для работы с БД на Railway
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -48,9 +49,14 @@ def _env_list(name: str, default: list[str]) -> list[str]:
 _load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-change-me")
-DEBUG = _env_bool("DJANGO_DEBUG", True)
 
-ALLOWED_HOSTS = _env_list("DJANGO_ALLOWED_HOSTS", ["127.0.0.1", "localhost"])
+# На Railway DEBUG должен быть False. В локалке подтянется из .env или True по умолчанию.
+DEBUG = _env_bool("DJANGO_DEBUG", os.environ.get("DEBUG", "False") == "True")
+
+# Добавляем "*" для Railway или берем список из настроек
+ALLOWED_HOSTS = _env_list("DJANGO_ALLOWED_HOSTS", ["127.0.0.1", "localhost", ".railway.app"])
+if not DEBUG:
+    ALLOWED_HOSTS = ["*"]
 
 # Domyślny limit urlopu rocznego (dni robocze). Możesz nadpisać w .env.
 HR_DEFAULT_ANNUAL_LEAVE_LIMIT_DAYS = int(os.environ.get("HR_DEFAULT_ANNUAL_LEAVE_LIMIT_DAYS", "26"))
@@ -82,6 +88,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "corsheaders",
+    "whitenoise.runserver_nostatic", # Оптимизация для разработки
     # Własne
     "core",
 ]
@@ -95,6 +102,7 @@ SITE_ID = 1
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware", # WhiteNoise для раздачи статики
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -131,13 +139,13 @@ ASGI_APPLICATION = "hr_manager.asgi.application"
 
 
 # -----------------------------------------------------------------------------
-# Baza danych (SQLite – wystarczy na projekt dyplomowy)
+# Baza danych (Авто-настройка для Railway + SQLite как запасной вариант)
 # -----------------------------------------------------------------------------
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
+    )
 }
 
 
@@ -165,12 +173,14 @@ USE_TZ = True
 # Static / Media
 # -----------------------------------------------------------------------------
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = BASE_DIR / "staticfiles" # Обязательно для Railway
+
+# Настройка WhiteNoise для сжатия статики
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Dodatkowe katalogi statyczne (np. własny /static oraz assets z builda Vite)
 STATICFILES_DIRS: list[Path] = []
 if (BASE_DIR / "static").exists():
     STATICFILES_DIRS.append(BASE_DIR / "static")
@@ -211,12 +221,11 @@ ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
-# allauth: wylogowanie także przez GET (wygodne w SPA)
 ACCOUNT_LOGOUT_ON_GET = True
 
 
 # -----------------------------------------------------------------------------
-# CORS / CSRF (dla SPA na Vite w trybie developerskim)
+# CORS / CSRF (dla SPA na Vite w trybie developerskim i produkcyjnym)
 # -----------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = _env_list(
     "DJANGO_CORS_ALLOWED_ORIGINS",
@@ -236,3 +245,9 @@ CSRF_TRUSTED_ORIGINS = _env_list(
         "http://127.0.0.1:8000",
     ],
 )
+
+# Если мы на Railway, добавляем публичный URL в доверенные
+RAILWAY_PUBLIC_URL = os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+if RAILWAY_PUBLIC_URL:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RAILWAY_PUBLIC_URL}")
+    CORS_ALLOWED_ORIGINS.append(f"https://{RAILWAY_PUBLIC_URL}")
