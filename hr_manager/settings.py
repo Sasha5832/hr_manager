@@ -235,7 +235,7 @@ CORS_ALLOWED_ORIGINS = _env_list(
     ],
 )
 CORS_ALLOW_CREDENTIALS = True
-
+CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = _env_list(
     "DJANGO_CSRF_TRUSTED_ORIGINS",
     [
@@ -243,6 +243,8 @@ CSRF_TRUSTED_ORIGINS = _env_list(
         "http://127.0.0.1:5173",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
+        "https://hr-manager-lstr7t21b-bokinavk.vercel.app"
+        "https://hr-manager-git-main-bokinavk.vercel.app"
     ],
 )
 
