@@ -30,3 +30,10 @@ if settings.DEBUG:
             {"document_root": settings.FRONTEND_DIST_DIR / "assets"},
         )
     ]
+
+urlpatterns += [
+    re_path(
+        r"^(?!api/|admin/|accounts/|api-auth/|static/|media/|assets/).*",
+        never_cache(spa_index),
+    ),
+]

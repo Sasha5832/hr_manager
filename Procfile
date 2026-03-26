@@ -1,1 +1,0 @@
-web: gunicorn hr_manager.wsgi
